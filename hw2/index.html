@@ -1,0 +1,21 @@
+<html>
+<meta charset="utf-8">
+  <head>
+   <script src="../aframe/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene>
+      <a-sphere position="0.334 3 -4.747" radius="0.6" src="bird.jfif" rotation="0 -85.845 0" > </a-sphere>
+      <a-torus position="-2 1 -5" color="#FFD700" radius="1.2"
+      animation="property: material.opacity; from: 1; to: 0; dur: 2000; dir: alternate; loop: true"></a-torus>
+      <a-plane position="0 -2 -5" rotation="-55 0 0" width="7" height="7" color="#7BC8A4"></a-plane>
+      <a-cylinder position="0.334 -0.312 -4.747" rotation="-45 0 0" radius="0.5" height="1.5" color="#00BFFF"></a-cylinder>	      
+      <a-sky color="#7fd4ff" radius="10"></a-sky>
+      <a-torus-knot color="orange" radius="1.2" position="-3 1 -5"
+       animation="property: rotation; to: 00 360; loop: true; dur: 10000"></a-torus-knot>
+      <a-text value="Ласкаво просимо до VR!" color="black" width="10" position="-0.5 1.5 -6" font="Gabriola-msdf.json" negate="false"></a-text>
+     <a-text value="Вавринюк Артем" font="universal1-msdf.json" color="black" position="-0.5 1 -6" negate="false"> </a-text>	
+    <a-gltf-model src="Surprising Jofo.glb" position="-0.880 -1.065 -4.679" scale= "25 25 25"></a-gltf-model>
+     </a-scene>
+  </body>
+</html>
