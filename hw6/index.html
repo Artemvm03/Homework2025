@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="UTF-8" />
+  <title>MindAR + A-Frame Example</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.0/dist/mindar-image-aframe.prod.js"></script>
+  <style>
+    body, html {
+      margin: 0; 
+      overflow: hidden;
+      width: 100%; 
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <a-scene mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 4" 
+           vr-mode-ui="enabled: false" 
+           embedded 
+           color-space="sRGB"
+           renderer="colorManagement: true, physicallyCorrectLights: true">
+
+    <!-- Камера з MindAR -->
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <!-- Маркер A -->
+    <a-anchor targetIndex="0" id="anchor-a">
+      <a-box position="0 0 0" color="red" depth="0.1" height="0.1" width="0.1"></a-box>
+    </a-anchor>
+
+    <!-- Маркер B -->
+    <a-anchor targetIndex="1" id="anchor-b">
+      <a-sphere position="0 0 0" color="green" radius="0.05"></a-sphere>
+    </a-anchor>
+
+    <!-- Маркер C -->
+    <a-anchor targetIndex="2" id="anchor-c">
+      <a-cylinder position="0 0 0" color="blue" radius="0.03" height="0.1"></a-cylinder>
+    </a-anchor>
+
+    <!-- Маркер D -->
+    <a-anchor targetIndex="3" id="anchor-d">
+      <a-cone position="0 0 0" color="yellow" radius-bottom="0.05" height="0.1"></a-cone>
+    </a-anchor>
+
+  </a-scene>
+
+  <!-- Підключення зовнішнього JS -->
+  <script src="app.js"></script>
+</body>
+</html>
