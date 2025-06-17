@@ -1,22 +1,59 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="UTF-8">
-    <title>Звіт про виконані завдання</title>
-</head>
-<body>
-    <h1>Звіт про виконані завдання</h1>
-    <h2>Студента групи ФІм-24. Вавринюка Артема</h2>
-    <ol>
-       <li> <a href="hw1/">Домашня робота до першого тижня</a> </li>
-        <li> <a href="hw2/">Домашня робота до другого тижня</a> </li>
-        <li> <a href="hw3/">Домашня робота до третього тижня</a> </li>
-        <li> <a href="hw4/">Домашня робота до четвертого тижня</a> </li>
-        <li> <a href="hw5/">Домашня робота до п'ятого тижня</a> </li>
-        <li> <a href="hw6/">Домашня робота до шостого тижня </a> </li>
-        <li> <a href="hw7(Aframe)/">лабораторна робота 1 Aframe </a> </li>
-    </ol>
-</body>
+  <head>
+    <meta charset="utf-8" />
+    <title>Літій у MindAR</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+    <style>
+      body { margin: 0; overflow: hidden; }
+      canvas { position: absolute; top: 0; left: 0; }
+    </style>
+  </head>
+  <body>
+    <a-scene  mindar-image="imageTargetSrc: ../targets.mind;" 
+             embedded
+             color-space="sRGB" 
+             renderer="colorManagement: true, physicallyCorrectLights"
+             vr-mode-ui="enabled: false"
+             device-orientation-permission-ui="enabled: true">
+
+      <a-assets>
+        <img id="nucleus-texture" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/waternormals.jpg" />
+        <img id="electron" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/water.jpg" />
+      </a-assets>
+
+      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-entity light="type: ambient; intensity: 1"></a-entity>
+      <a-entity light="type: directional; intensity: 0.5" position="1 1 0"></a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 0">
+        <!-- Ядро -->
+        <a-sphere position="0 0 0" radius="0.5" src="#nucleus-texture"></a-sphere>
+
+        <!-- Орбіта 1 -->
+        <a-entity rotation="0 0 0">
+          <a-entity animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true">
+            <a-sphere position="0 0 1" radius="0.1" src="#electron"></a-sphere>
+            <a-sphere position="0 0 -1" radius="0.1" src="#electron"></a-sphere>
+          </a-entity>
+        </a-entity>
+
+        <!-- Орбіта 2 -->
+        <a-entity rotation="45 30 0">
+          <a-entity animation="property: rotation; to: 0 360 0; dur: 6000; easing: linear; loop: true">
+            <a-sphere position="0 0 2" radius="0.1" src="#electron"></a-sphere>
+          </a-entity>
+        </a-entity>
+
+        <!-- Орбіта 3 -->
+        <a-entity rotation="60 90 15">
+          <a-entity animation="property: rotation; to: 0 360 0; dur: 9000; easing: linear; loop: true">
+            <!-- порожня орбіта -->
+          </a-entity>
+        </a-entity>
+      </a-entity>
+    </a-scene>
+  </body>
 </html>
-
-
