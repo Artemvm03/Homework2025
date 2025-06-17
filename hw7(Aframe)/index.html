@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Атом Літію у VR</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  </head>
+  <body>
+    <a-scene background="color: black">
+
+      <!-- Камера -->
+      <a-entity position="0 1.6 30" rotation = "0 0 0">
+        <a-camera></a-camera>
+      </a-entity>
+
+     <!-- Ядро -->
+<a-sphere
+  position="0 0 0"
+  radius="1"
+  segments-height="18"
+  src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/waternormals.jpg">
+</a-sphere>
+
+<!-- Орбіта 1: радіус 10, 2 електрони -->
+  <a-entity rotation="0 0 0">
+    <a-entity animation="property: rotation; to: 0 360 0; dur: 3000; easing: linear; loop: true">
+      <a-sphere position="0 0 10" radius="0.1" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/water.jpg"></a-sphere>
+      <a-sphere position="0 0 -10" radius="0.1" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/water.jpg"></a-sphere>
+    </a-entity>
+  </a-entity>
+
+<!-- Орбіта 2: радіус 50, 1 електрон -->
+  <a-entity rotation="45 30 0">
+    <a-entity animation="property: rotation; to: 0 360 0; dur: 6000; easing: linear; loop: true">
+    <a-sphere position="0 0 50" radius="0.1" src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/water.jpg"></a-sphere>
+    </a-entity>
+  </a-entity>
+
+<!-- Орбіта 3: радіус 100, без електронів -->
+  <a-entity rotation="60 90 15">
+    <a-entity animation="property: rotation; to: 0 360 0; dur: 9000; easing: linear; loop: true">
+      <!-- залишено порожнім або можеш додати майбутні електрони -->
+    </a-entity>
+  </a-entity>
+
+    </a-sphere>
+  </a-entity>
+</a-entity>
+
+    </a-scene>
+  </body>
+</html>
