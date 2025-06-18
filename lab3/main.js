@@ -81,20 +81,15 @@ class LithiumAtomAR {
     }
 
     setupLighting() {
-        // Амбієнтне освітлення
-        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+        // Амбієнтне освітлення для AR
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
         this.scene.add(ambientLight);
 
-        // Направлене освітлення
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-        directionalLight.position.set(5, 10, 5);
-        directionalLight.castShadow = true;
-        this.scene.add(directionalLight);
-
-        // Точкове освітлення для ефекту
-        const pointLight = new THREE.PointLight(0x00ff88, 0.8, 100);
-        pointLight.position.set(0, 0, 5);
-        this.scene.add(pointLight);
+        // Направлене освітлення від камери
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.6);
+        directionalLight.position.set(0, 1, 1);
+        this.camera.add(directionalLight);
+        this.scene.add(this.camera);
     }
 
     createLithiumAtom() {
@@ -261,8 +256,14 @@ class LithiumAtomAR {
         if (!this.scene) this.setupThreeJS();
         
         // Позиціонування камери для демо режиму
-        this.camera.position.set(0, 0, 3);
+        this.camera.position.set(0, 0, 2);
         this.camera.lookAt(0, 0, 0);
+        
+        // В демо режимі розміщуємо атом в центрі
+        if (this.atomGroup) {
+            this.atomGroup.position.set(0, 0, 0);
+            this.atomGroup.scale.set(1, 1, 1);
+        }
         
         // Запуск анімації
         this.renderer.setAnimationLoop((time) => this.animate(time));
@@ -325,7 +326,8 @@ class LithiumAtomAR {
             electron.rotation.y = elapsedTime * 5;
         });
 
-        // Плавне обертання всього атома
+        // В AR режимі атом залишається фіксованим у просторі
+        // В демо режимі додаємо легке обертання
         if (!this.isARActive) {
             this.atomGroup.rotation.y += 0.005;
         }
