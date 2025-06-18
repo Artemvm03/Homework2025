@@ -273,9 +273,14 @@ class LithiumAtomAR {
     }
 
     addMouseControls() {
+        // Контроли тільки для демо режиму
+        if (this.isARActive) return;
+        
         let mouseX = 0, mouseY = 0;
         
-        document.addEventListener('mousemove', (event) => {
+        const handleMouseMove = (event) => {
+            if (this.isARActive) return; // Не працюють в AR
+            
             mouseX = (event.clientX / window.innerWidth) * 2 - 1;
             mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
             
@@ -283,10 +288,11 @@ class LithiumAtomAR {
                 this.atomGroup.rotation.y = mouseX * 0.5;
                 this.atomGroup.rotation.x = mouseY * 0.3;
             }
-        });
+        };
 
-        // Тач контроли для мобільних пристроїв
-        document.addEventListener('touchmove', (event) => {
+        const handleTouchMove = (event) => {
+            if (this.isARActive) return; // Не працюють в AR
+            
             if (event.touches.length === 1) {
                 const touch = event.touches[0];
                 mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
@@ -297,7 +303,10 @@ class LithiumAtomAR {
                     this.atomGroup.rotation.x = mouseY * 0.3;
                 }
             }
-        });
+        };
+        
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('touchmove', handleTouchMove);
     }
 
     animate(time) {
