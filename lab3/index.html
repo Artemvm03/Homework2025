@@ -64,7 +64,7 @@
             left: 20px;
             color: white;
             font-size: 16px;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             padding: 15px;
             border-radius: 10px;
             max-width: 300px;
@@ -75,6 +75,21 @@
         #info h3 {
             margin: 0 0 10px 0;
             color: #ff6b6b;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 10px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            z-index: 98;
         }
 
         .hidden {
@@ -89,6 +104,10 @@
             color: white;
             font-size: 18px;
             z-index: 101;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
         }
 
         .error {
@@ -119,6 +138,13 @@
                 max-width: none;
                 font-size: 14px;
             }
+
+            #controls {
+                bottom: 10px;
+                left: 10px;
+                right: 10px;
+                font-size: 12px;
+            }
         }
     </style>
 </head>
@@ -132,15 +158,21 @@
             Нейтронів: 4</p>
         </div>
         
+        <div id="controls" class="hidden">
+            📱 Рухайте пристрій, щоб оглянути атом з різних ракурсів
+        </div>
+        
         <button id="ar-button">🚀 Запустити AR</button>
         
         <div id="loading" class="loading hidden">
-            Завантаження AR...
+            <div>Завантаження AR...</div>
+            <div style="margin-top: 10px; font-size: 14px;">Дозвольте доступ до камери</div>
         </div>
         
         <div id="error" class="error hidden">
             <h3>❌ Помилка</h3>
             <p>WebXR не підтримується вашим браузером або пристроєм.</p>
+            <div style="margin-top: 10px; font-size: 14px;">Спробуйте Chrome або Firefox на Android</div>
         </div>
     </div>
 
