@@ -61,6 +61,7 @@ class LithiumAtomAR {
             alpha: true
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setClearColor(0x000000, 0); // Прозорий фон
         this.renderer.xr.enabled = true;
         document.getElementById('container').appendChild(this.renderer.domElement);
 
@@ -365,6 +366,10 @@ class LithiumAtomAR {
     }
 }
 
+// Запуск додатку після завантаження DOM
+document.addEventListener('DOMContentLoaded', () => {
+    new LithiumAtomAR();
+});
 // Запуск додатку після завантаження DOM
 document.addEventListener('DOMContentLoaded', () => {
     new LithiumAtomAR();
