@@ -10,7 +10,7 @@
   <body style="margin: 0; overflow: hidden">
     <a-scene embedded arjs>
       <a-marker preset="hiro">
-
+ 	<a-entity scale= "0.2 0.2 0.2">
         <!-- Ядро -->
         <a-sphere position="0 0 0" radius="1" 
           src="https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/waternormals.jpg">
@@ -36,7 +36,7 @@
           <a-entity animation="property: rotation; to: 0 360 0; dur: 9000; easing: linear; loop: true">
           </a-entity>
         </a-entity>
-
+	</a-entity>
       </a-marker>
 
       <a-entity camera></a-entity>
