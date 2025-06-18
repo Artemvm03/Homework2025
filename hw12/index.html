@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>AR Сцена з Двома Моделями</title>
+    <meta name="description" content="WebAR сцена з двома 3D моделями">
+    <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+    <script src="https://raw.githack.com/AR-js-org/AR.js/master/aframe/build/aframe-ar-nft.js"></script>
+    <style>
+        .arjs-loader {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .arjs-loader div {
+            text-align: center;
+            font-size: 1.25em;
+            color: white;
+        }
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 10px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body style="margin: 0px; overflow: hidden;">
+    
+    <script>
+        // Компонент для анімації обертання
+        AFRAME.registerComponent('rotate-animation', {
+            schema: {
+                speed: {default: 1}
+            },
+            init: function () {
+                var el = this.el;
+                var speed = this.data.speed;
+                
+                el.setAttribute('animation', {
+                    property: 'rotation',
+                    to: '0 360 0',
+                    loop: true,
+                    dur: 4000 / speed
+                });
+            }
+        });
+        
+        // Компонент для реакції на кліки
+        AFRAME.registerComponent('clickable', {
+            schema: {
+                color: {default: '#FF0000'}
+            },
+            init: function () {
+                var el = this.el;
+                var originalScale = el.getAttribute('scale');
+                var color = this.data.color;
+                
+                el.addEventListener('click', function () {
+                    // Збільшення масштабу при кліку
+                    el.setAttribute('scale', {
+                        x: originalScale.x * 1.2,
+                        y: originalScale.y * 1.2,
+                        z: originalScale.z * 1.2
+                    });
+                    
+                    // Зміна кольору
+                    el.setAttribute('material', 'color', color);
+                    
+                    // Повернення до оригінального стану через 1 секунду
+                    setTimeout(function() {
+                        el.setAttribute('scale', originalScale);
+                        el.setAttribute('material', 'color', '#4CC3D9');
+                    }, 1000);
+                    
+                    console.log('Модель активована!');
+                });
+            }
+        });
+        
+        // Компонент для руху вгору-вниз
+        AFRAME.registerComponent('float-animation', {
+            init: function () {
+                var el = this.el;
+                var originalY = el.getAttribute('position').y;
+                
+                el.setAttribute('animation__float', {
+                    property: 'position',
+                    to: {x: el.getAttribute('position').x, y: originalY + 0.5, z: el.getAttribute('position').z},
+                    direction: 'alternate',
+                    loop: true,
+                    dur: 2000,
+                    easing: 'easeInOutSine'
+                });
+            }
+        });
+    </script>
+
+    <!-- Індикатор завантаження -->
+    <div class="arjs-loader">
+        <div>Завантаження AR сцени, будь ласка зачекайте...</div>
+    </div>
+    
+    <!-- Елементи управління -->
+    <div class="controls">
+        <div>🎯 Натисніть на моделі для взаємодії</div>
+        <div>📱 Використовуйте сенсорний екран або мишу</div>
+    </div>
+
+    <!-- A-Frame сцена -->
+    <a-scene 
+        vr-mode-ui="enabled: false;" 
+        embedded 
+        arjs="trackingMethod: best; sourceType: webcam; debugUIEnabled: false;"
+        renderer="logarithmicDepthBuffer: true;">
+        
+        <!-- Освітлення -->
+        <a-light type="ambient" color="#404040" intensity="0.5"></a-light>
+        <a-light type="directional" position="0 5 0" color="#ffffff" intensity="0.8"></a-light>
+        
+        <!-- Ліва модель - складний геометричний об'єкт -->
+        <a-entity 
+            position="-3 0 -5"
+            scale="0.8 0.8 0.8">
+            
+            <!-- Основа - октаедр -->
+            <a-octahedron 
+                position="0 0 0"
+                radius="1"
+                color="#4CC3D9"
+                material="metalness: 0.3; roughness: 0.4"
+                rotate-animation="speed: 0.5"
+                clickable="color: #FF6B6B"
+                float-animation>
+            </a-octahedron>
+            
+            <!-- Додаткові елементи -->
+            <a-torus 
+                position="0 0 0"
+                color="#EF2D5E"
+                radius="1.5"
+                radius-tubular="0.1"
+                rotate-animation="speed: 2"
+                material="transparent: true; opacity: 0.7">
+            </a-torus>
+            
+            <a-sphere 
+                position="0 1.5 0"
+                radius="0.3"
+                color="#FFC65D"
+                material="emissive: #FFC65D; emissiveIntensity: 0.2">
+            </a-sphere>
+        </a-entity>
+        
+        <!-- Права модель - архітектурна композиція -->
+        <a-entity 
+            position="3 0 -5"
+            scale="0.8 0.8 0.8">
+            
+            <!-- Основа - призма -->
+            <a-cylinder 
+                position="0 0 0"
+                radius="1"
+                height="2"
+                segments-radial="6"
+                color="#4CC3D9"
+                material="metalness: 0.5; roughness: 0.3"
+                rotate-animation="speed: 0.8"
+                clickable="color: #4ECDC4">
+            </a-cylinder>
+            
+            <!-- Верхня частина -->
+            <a-cone 
+                position="0 1.5 0"
+                radius-bottom="1.2"
+                radius-top="0"
+                height="1"
+                color="#95E1D3"
+                material="transparent: true; opacity: 0.8"
+                rotate-animation="speed: 1.5">
+            </a-cone>
+            
+            <!-- Додаткові деталі -->
+            <a-ring 
+                position="0 -0.5 0"
+                radius-inner="1.2"
+                radius-outer="1.5"
+                color="#F38BA8"
+                rotation="90 0 0"
+                material="side: double">
+            </a-ring>
+            
+            <!-- Орбітальні елементи -->
+            <a-sphere 
+                position="2 0.5 0"
+                radius="0.2"
+                color="#FFD23F"
+                material="emissive: #FFD23F; emissiveIntensity: 0.3"
+                float-animation>
+                <a-animation 
+                    attribute="rotation" 
+                    to="0 360 0" 
+                    dur="6000" 
+                    repeat="indefinite">
+                </a-animation>
+            </a-sphere>
+            
+            <a-sphere 
+                position="-2 0.5 0"
+                radius="0.2"
+                color="#FF6B9D"
+                material="emissive: #FF6B9D; emissiveIntensity: 0.3"
+                float-animation>
+                <a-animation 
+                    attribute="rotation" 
+                    to="0 -360 0" 
+                    dur="8000" 
+                    repeat="indefinite">
+                </a-animation>
+            </a-sphere>
+        </a-entity>
+        
+        <!-- Додаткові декоративні елементи -->
+        <!-- Партикли навколо сцени -->
+        <a-sphere position="-4 2 -3" radius="0.05" color="#FFE66D" material="emissive: #FFE66D; emissiveIntensity: 0.5">
+            <a-animation attribute="position" to="-4 3 -3" direction="alternate" dur="3000" repeat="indefinite"></a-animation>
+        </a-sphere>
+        
+        <a-sphere position="4 2.5 -4" radius="0.05" color="#A8E6CF" material="emissive: #A8E6CF; emissiveIntensity: 0.5">
+            <a-animation attribute="position" to="4 1.5 -4" direction="alternate" dur="4000" repeat="indefinite"></a-animation>
+        </a-sphere>
+        
+        <a-sphere position="0 3 -6" radius="0.05" color="#FFB3BA" material="emissive: #FFB3BA; emissiveIntensity: 0.5">
+            <a-animation attribute="position" to="0 2 -6" direction="alternate" dur="2500" repeat="indefinite"></a-animation>
+        </a-sphere>
+        
+        <!-- Підлога/площина для орієнтації -->
+        <a-plane 
+            position="0 -2 -5" 
+            rotation="-90 0 0" 
+            width="10" 
+            height="10" 
+            color="#2C3E50" 
+            material="transparent: true; opacity: 0.3"
+            shadow="receive: true">
+        </a-plane>
+        
+        <!-- Камера з курсором -->
+        <a-entity camera look-controls wasd-controls>
+            <a-cursor 
+                color="#FF0000"
+                animation__click="property: scale; startEvents: click; from: 0.1 0.1 0.1; to: 1 1 1; dur: 150"
+                animation__fusing="property: scale; startEvents: fusing; from: 1 1 1; to: 0.1 0.1 0.1; dur: 1500"
+                raycaster="objects: [clickable]">
+            </a-cursor>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // Приховування індикатора завантаження після ініціалізації сцени
+        document.querySelector('a-scene').addEventListener('loaded', function() {
+            document.querySelector('.arjs-loader').style.display = 'none';
+        });
+        
+        // Лог для відладки
+        console.log('AR сцена з двома моделями ініціалізована');
+        
+        // Додаткові обробники подій
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                document.querySelector('.arjs-loader').style.display = 'none';
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
