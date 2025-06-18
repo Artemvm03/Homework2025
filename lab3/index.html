@@ -77,19 +77,18 @@
             color: #ff6b6b;
         }
 
-        #controls {
+        #ar-controls {
             position: absolute;
             bottom: 20px;
-            left: 20px;
-            right: 20px;
-            text-align: center;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 20px;
+            border-radius: 25px;
             color: white;
             font-size: 14px;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 10px;
-            border-radius: 10px;
             backdrop-filter: blur(10px);
-            z-index: 98;
+            z-index: 99;
         }
 
         .hidden {
@@ -105,9 +104,6 @@
             font-size: 18px;
             z-index: 101;
             text-align: center;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 20px;
-            border-radius: 10px;
         }
 
         .error {
@@ -122,6 +118,21 @@
             padding: 20px;
             border-radius: 10px;
             z-index: 101;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #ff6b6b;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @media (max-width: 768px) {
@@ -139,11 +150,12 @@
                 font-size: 14px;
             }
 
-            #controls {
+            #ar-controls {
                 bottom: 10px;
                 left: 10px;
                 right: 10px;
-                font-size: 12px;
+                transform: none;
+                text-align: center;
             }
         }
     </style>
@@ -154,29 +166,31 @@
             <h3>🔬 Атом Літію (Li)</h3>
             <p>Атомний номер: 3<br>
             Електронів: 3<br>
-            Протонів: 3<br>
-            Нейтронів: 4</p>
-        </div>
-        
-        <div id="controls" class="hidden">
-            📱 Рухайте пристрій, щоб оглянути атом з різних ракурсів
+            Протонів: 3 (червоні)<br>
+            Нейтронів: 4 (сині)</p>
         </div>
         
         <button id="ar-button">🚀 Запустити AR</button>
         
+        <div id="ar-controls" class="hidden">
+            📱 Рухайте телефон для огляду атома з різних ракурсів
+        </div>
+        
         <div id="loading" class="loading hidden">
-            <div>Завантаження AR...</div>
-            <div style="margin-top: 10px; font-size: 14px;">Дозвольте доступ до камери</div>
+            <div class="spinner"></div>
+            Запуск AR камери...
         </div>
         
         <div id="error" class="error hidden">
             <h3>❌ Помилка</h3>
-            <p>WebXR не підтримується вашим браузером або пристроєм.</p>
-            <div style="margin-top: 10px; font-size: 14px;">Спробуйте Chrome або Firefox на Android</div>
+            <p id="error-message">WebXR не підтримується вашим браузером або пристроєм.</p>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
     <script src="main.js"></script>
 </body>
 </html>
