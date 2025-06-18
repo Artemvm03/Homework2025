@@ -9,10 +9,6 @@ class LithiumAtomAR {
         this.electrons = [];
         this.isARActive = false;
         this.animationId = null;
-        this.hitTestSource = null;
-        this.hitTestSourceRequested = false;
-        this.reticle = null;
-        this.atomPlaced = false;
         
         this.init();
     }
@@ -30,23 +26,20 @@ class LithiumAtomAR {
     async checkARSupport() {
         const arButton = document.getElementById('ar-button');
         const errorDiv = document.getElementById('error');
-        const errorMessage = document.getElementById('error-message');
 
         if ('xr' in navigator) {
             try {
                 const isSupported = await navigator.xr.isSessionSupported('immersive-ar');
                 if (!isSupported) {
-                    arButton.textContent = '📱 Демо режим';
-                    errorMessage.textContent = 'AR не підтримується. Буде запущено демо режим.';
+                    arButton.style.display = 'none';
+                    errorDiv.classList.remove('hidden');
                 }
             } catch (error) {
                 console.warn('AR підтримка не визначена:', error);
                 arButton.textContent = '📱 Демо режим';
-                errorMessage.textContent = 'AR не підтримується. Буде запущено демо режим.';
             }
         } else {
             arButton.textContent = '📱 Демо режим';
-            errorMessage.textContent = 'WebXR не підтримується. Буде запущено демо режим.';
         }
     }
 
@@ -54,62 +47,54 @@ class LithiumAtomAR {
         // Створення сцени
         this.scene = new THREE.Scene();
 
-        // Налаштування камери для AR
+        // Налаштування камери
         this.camera = new THREE.PerspectiveCamera(
-            70,
+            75,
             window.innerWidth / window.innerHeight,
-            0.01,
-            20
+            0.1,
+            1000
         );
 
-        // Створення рендерера з підтримкою AR
+        // Створення рендерера
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,
             alpha: true
         });
-        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setClearColor(0x000000, 0); // Прозорий фон
         this.renderer.xr.enabled = true;
-        this.renderer.shadowMap.enabled = true;
-        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        
         document.getElementById('container').appendChild(this.renderer.domElement);
 
-        // Додавання освітлення для AR
-        this.setupARLighting();
+        // Завантаження текстур
+        this.textureLoader = new THREE.TextureLoader();
+        this.nucleusTexture = this.textureLoader.load('https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/waternormals.jpg');
+        this.electronTexture = this.textureLoader.load('https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/water.jpg');
+
+        // Додавання освітлення
+        this.setupLighting();
 
         // Створення атома літію
         this.createLithiumAtom();
 
-        // Створення реticle для AR
-        this.createReticle();
+        // Налаштування AR режиму
+        this.setupARMode();
     }
 
-    setupARLighting() {
-        // Амбієнтне освітлення для AR - менше, щоб зберегти реальність
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    setupLighting() {
+        // Амбієнтне освітлення
+        const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
         this.scene.add(ambientLight);
 
         // Направлене освітлення
-        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-        directionalLight.position.set(1, 1, 1);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(5, 10, 5);
         directionalLight.castShadow = true;
-        directionalLight.shadow.mapSize.width = 1024;
-        directionalLight.shadow.mapSize.height = 1024;
         this.scene.add(directionalLight);
-    }
 
-    createReticle() {
-        const geometry = new THREE.RingGeometry(0.15, 0.2, 32).rotateX(-Math.PI / 2);
-        const material = new THREE.MeshBasicMaterial({
-            color: 0xff6b6b,
-            transparent: true,
-            opacity: 0.5
-        });
-        this.reticle = new THREE.Mesh(geometry, material);
-        this.reticle.matrixAutoUpdate = false;
-        this.reticle.visible = false;
-        this.scene.add(this.reticle);
+        // Точкове освітлення для ефекту
+        const pointLight = new THREE.PointLight(0x00ff88, 0.8, 100);
+        pointLight.position.set(0, 0, 5);
+        this.scene.add(pointLight);
     }
 
     createLithiumAtom() {
@@ -118,45 +103,36 @@ class LithiumAtomAR {
         // Створення ядра (3 протони + 4 нейтрони)
         this.createNucleus();
 
-        // Створення електронів
+        // Створення електронів (2 електрони для літію)
         this.createElectrons();
 
-        // Початкове позиціонування (буде змінено в AR)
-        this.atomGroup.position.set(0, 0, -1);
-        this.atomGroup.scale.set(0.3, 0.3, 0.3); // Зменшуємо для AR
-        
-        // Спочатку прихований, поки не буде розміщений в AR
-        this.atomGroup.visible = false;
-        
+        // Позиціонування атома
+        this.atomGroup.position.set(0, 0, -2);
         this.scene.add(this.atomGroup);
     }
 
     createNucleus() {
-        // Ядро літію
-        const nucleusGeometry = new THREE.SphereGeometry(0.4, 32, 32);
-        const nucleusMaterial = new THREE.MeshPhongMaterial({
-            color: 0x888888,
-            shininess: 100,
-            transparent: true,
-            opacity: 0.3
+        // Ядро літію з текстурою
+        const nucleusGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+        const nucleusMaterial = new THREE.MeshStandardMaterial({
+            map: this.nucleusTexture,
+            metalness: 0.6,
+            roughness: 0.4
         });
 
         this.nucleus = new THREE.Mesh(nucleusGeometry, nucleusMaterial);
         
         // Додаємо протони (червоні сфери)
         for (let i = 0; i < 3; i++) {
-            const protonGeometry = new THREE.SphereGeometry(0.12, 16, 16);
-            const protonMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0xff3333,
-                shininess: 80
-            });
+            const protonGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+            const protonMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
             const proton = new THREE.Mesh(protonGeometry, protonMaterial);
             
             const angle = (i / 3) * Math.PI * 2;
             proton.position.set(
-                Math.cos(angle) * 0.2,
-                Math.sin(angle) * 0.2,
-                (i % 2) * 0.15 - 0.075
+                Math.cos(angle) * 0.15,
+                Math.sin(angle) * 0.15,
+                (i % 2) * 0.1 - 0.05
             );
             
             this.nucleus.add(proton);
@@ -164,18 +140,15 @@ class LithiumAtomAR {
 
         // Додаємо нейтрони (сині сфери)
         for (let i = 0; i < 4; i++) {
-            const neutronGeometry = new THREE.SphereGeometry(0.12, 16, 16);
-            const neutronMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x3366ff,
-                shininess: 80
-            });
+            const neutronGeometry = new THREE.SphereGeometry(0.08, 16, 16);
+            const neutronMaterial = new THREE.MeshPhongMaterial({ color: 0x0088ff });
             const neutron = new THREE.Mesh(neutronGeometry, neutronMaterial);
             
             const angle = (i / 4) * Math.PI * 2 + Math.PI / 4;
             neutron.position.set(
-                Math.cos(angle) * 0.18,
-                Math.sin(angle) * 0.18,
-                (i % 2) * 0.12 - 0.06
+                Math.cos(angle) * 0.12,
+                Math.sin(angle) * 0.12,
+                (i % 2) * 0.08 - 0.04
             );
             
             this.nucleus.add(neutron);
@@ -185,74 +158,60 @@ class LithiumAtomAR {
     }
 
     createElectrons() {
-        const electronGeometry = new THREE.SphereGeometry(0.08, 16, 16);
-        const electronMaterial = new THREE.MeshPhongMaterial({
-            color: 0x00ff00,
-            shininess: 100,
-            emissive: 0x002200
+        // Створюємо 3 електрони для літію з правильною конфігурацією
+        const electronGeometry = new THREE.SphereGeometry(0.05, 16, 16);
+        const electronMaterial = new THREE.MeshStandardMaterial({
+            map: this.electronTexture,
+            metalness: 0.7,
+            roughness: 0.2
         });
 
         // Перша орбіта (K-оболонка): 2 електрони
-        for (let i = 0; i < 2; i++) {
-            const electron = new THREE.Mesh(electronGeometry, electronMaterial);
-            electron.userData = { 
-                orbitRadius: 1.0,
-                orbitSpeed: 3,
-                orbitOffset: i * Math.PI,
-                orbitTilt: 0,
-                shell: 'K'
-            };
-            this.electrons.push(electron);
-            this.atomGroup.add(electron);
-        }
+        const electron1 = new THREE.Mesh(electronGeometry, electronMaterial);
+        electron1.userData = { 
+            orbitRadius: 0.8,
+            orbitSpeed: 2,
+            orbitOffset: 0,
+            orbitTilt: 0
+        };
+        this.electrons.push(electron1);
+        this.atomGroup.add(electron1);
+
+        const electron2 = new THREE.Mesh(electronGeometry, electronMaterial);
+        electron2.userData = { 
+            orbitRadius: 0.8,
+            orbitSpeed: 2,
+            orbitOffset: Math.PI, // протилежна сторона орбіти
+            orbitTilt: 0
+        };
+        this.electrons.push(electron2);
+        this.atomGroup.add(electron2);
 
         // Друга орбіта (L-оболонка): 1 електрон
         const electron3 = new THREE.Mesh(electronGeometry, electronMaterial);
         electron3.userData = { 
-            orbitRadius: 1.6,
-            orbitSpeed: 2,
+            orbitRadius: 1.4,
+            orbitSpeed: 1.2,
             orbitOffset: 0,
-            orbitTilt: Math.PI / 4,
-            shell: 'L'
+            orbitTilt: Math.PI / 6
         };
         this.electrons.push(electron3);
         this.atomGroup.add(electron3);
-
-        // Створення орбітальних кілець для візуалізації
-        this.createOrbitRings();
     }
 
-    createOrbitRings() {
-        // Кільце для K-оболонки
-        const ring1Geometry = new THREE.RingGeometry(0.98, 1.02, 64);
-        const ring1Material = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.2,
-            side: THREE.DoubleSide
-        });
-        const ring1 = new THREE.Mesh(ring1Geometry, ring1Material);
-        ring1.rotation.x = Math.PI / 2;
-        this.atomGroup.add(ring1);
+    setupARMode() {
+        // Налаштування контролерів для AR
+        const controller = this.renderer.xr.getController(0);
+        this.scene.add(controller);
 
-        // Кільце для L-оболонки
-        const ring2Geometry = new THREE.RingGeometry(1.58, 1.62, 64);
-        const ring2Material = new THREE.MeshBasicMaterial({
-            color: 0xffffff,
-            transparent: true,
-            opacity: 0.15,
-            side: THREE.DoubleSide
-        });
-        const ring2 = new THREE.Mesh(ring2Geometry, ring2Material);
-        ring2.rotation.x = Math.PI / 2 + Math.PI / 4;
-        this.atomGroup.add(ring2);
+        // Додаємо можливість масштабування жестами
+        window.addEventListener('resize', () => this.onWindowResize());
     }
 
     async startAR() {
         const arButton = document.getElementById('ar-button');
         const loadingDiv = document.getElementById('loading');
         const errorDiv = document.getElementById('error');
-        const arControls = document.getElementById('ar-controls');
 
         try {
             arButton.classList.add('hidden');
@@ -261,32 +220,19 @@ class LithiumAtomAR {
             // Ініціалізація Three.js
             this.setupThreeJS();
 
-            if ('xr' in navigator && await navigator.xr.isSessionSupported('immersive-ar')) {
-                // Запуск AR сесії
+            if ('xr' in navigator) {
+                // Спроба запуску AR сесії
                 const session = await navigator.xr.requestSession('immersive-ar', {
-                    requiredFeatures: ['local'],
-                    optionalFeatures: ['hit-test']
+                    requiredFeatures: ['local']
                 });
 
                 await this.renderer.xr.setSession(session);
                 this.isARActive = true;
                 
-                // Налаштування hit-test для розміщення об'єктів
-                session.requestReferenceSpace('viewer').then((referenceSpace) => {
-                    session.requestHitTestSource({ space: referenceSpace }).then((source) => {
-                        this.hitTestSource = source;
-                    });
-                });
-
-                // Обробка кліків/торкань для розміщення атома
-                this.renderer.domElement.addEventListener('click', this.onSelect.bind(this));
-                this.renderer.domElement.addEventListener('touchend', this.onSelect.bind(this));
-                
                 // Запуск анімації
-                this.renderer.setAnimationLoop((time, frame) => this.animate(time, frame));
+                this.renderer.setAnimationLoop((time) => this.animate(time));
                 
                 loadingDiv.classList.add('hidden');
-                arControls.classList.remove('hidden');
                 
                 session.addEventListener('end', () => {
                     this.endAR();
@@ -301,25 +247,13 @@ class LithiumAtomAR {
         } catch (error) {
             console.error('Помилка запуску AR:', error);
             loadingDiv.classList.add('hidden');
+            errorDiv.classList.remove('hidden');
             
             // Запуск демо режиму як fallback
-            this.startDemoMode();
-        }
-    }
-
-    onSelect(event) {
-        if (!this.isARActive || this.atomPlaced) return;
-
-        if (this.reticle.visible) {
-            // Розміщуємо атом в позиції reticle
-            this.atomGroup.position.setFromMatrixPosition(this.reticle.matrix);
-            this.atomGroup.visible = true;
-            this.atomPlaced = true;
-            this.reticle.visible = false;
-
-            // Прибираємо інструкції
-            const arControls = document.getElementById('ar-controls');
-            arControls.innerHTML = '✅ Атом розміщено! Рухайте камеру для огляду';
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+                this.startDemoMode();
+            }, 3000);
         }
     }
 
@@ -330,81 +264,45 @@ class LithiumAtomAR {
         this.camera.position.set(0, 0, 3);
         this.camera.lookAt(0, 0, 0);
         
-        // В демо режимі показуємо атом відразу
-        if (this.atomGroup) {
-            this.atomGroup.position.set(0, 0, 0);
-            this.atomGroup.scale.set(0.5, 0.5, 0.5);
-            this.atomGroup.visible = true;
-            this.atomPlaced = true;
-        }
-        
         // Запуск анімації
         this.renderer.setAnimationLoop((time) => this.animate(time));
         
         // Додаємо контроли миші для демо режиму
         this.addMouseControls();
-
-        // Показуємо повідомлення про демо режим
-        const arControls = document.getElementById('ar-controls');
-        arControls.innerHTML = '🖱️ Демо режим: рухайте мишею для огляду атома';
-        arControls.classList.remove('hidden');
     }
 
     addMouseControls() {
-        if (this.isARActive) return;
-        
         let mouseX = 0, mouseY = 0;
-        let isMouseDown = false;
         
-        const handleMouseMove = (event) => {
-            if (this.isARActive) return;
-            
-            const deltaX = event.clientX - mouseX;
-            const deltaY = event.clientY - mouseY;
-            
-            if (isMouseDown && this.atomGroup) {
-                this.atomGroup.rotation.y += deltaX * 0.01;
-                this.atomGroup.rotation.x += deltaY * 0.01;
-            }
-            
-            mouseX = event.clientX;
-            mouseY = event.clientY;
-        };
-
-        const handleMouseDown = () => {
-            isMouseDown = true;
-        };
-
-        const handleMouseUp = () => {
-            isMouseDown = false;
-        };
-
-        const handleTouchMove = (event) => {
-            if (this.isARActive || event.touches.length !== 1) return;
-            
-            const touch = event.touches[0];
-            const deltaX = touch.clientX - mouseX;
-            const deltaY = touch.clientY - mouseY;
+        document.addEventListener('mousemove', (event) => {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
             
             if (this.atomGroup) {
-                this.atomGroup.rotation.y += deltaX * 0.01;
-                this.atomGroup.rotation.x += deltaY * 0.01;
+                this.atomGroup.rotation.y = mouseX * 0.5;
+                this.atomGroup.rotation.x = mouseY * 0.3;
             }
-            
-            mouseX = touch.clientX;
-            mouseY = touch.clientY;
-        };
-        
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mousedown', handleMouseDown);
-        document.addEventListener('mouseup', handleMouseUp);
-        document.addEventListener('touchmove', handleTouchMove);
+        });
+
+        // Тач контроли для мобільних пристроїв
+        document.addEventListener('touchmove', (event) => {
+            if (event.touches.length === 1) {
+                const touch = event.touches[0];
+                mouseX = (touch.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(touch.clientY / window.innerHeight) * 2 + 1;
+                
+                if (this.atomGroup) {
+                    this.atomGroup.rotation.y = mouseX * 0.5;
+                    this.atomGroup.rotation.x = mouseY * 0.3;
+                }
+            }
+        });
     }
 
-    animate(time, frame) {
+    animate(time) {
         if (!this.atomGroup) return;
 
-        const elapsedTime = time * 0.001;
+        const elapsedTime = time * 0.001; // Convert to seconds
 
         // Обертання ядра
         if (this.nucleus) {
@@ -413,7 +311,7 @@ class LithiumAtomAR {
         }
 
         // Анімація електронів по орбітах
-        this.electrons.forEach((electron) => {
+        this.electrons.forEach((electron, index) => {
             const userData = electron.userData;
             const angle = elapsedTime * userData.orbitSpeed + userData.orbitOffset;
             
@@ -424,26 +322,12 @@ class LithiumAtomAR {
             );
 
             // Власне обертання електронів
-            electron.rotation.y = elapsedTime * 8;
+            electron.rotation.y = elapsedTime * 5;
         });
 
-        // AR hit-test логіка
-        if (this.isARActive && frame && this.hitTestSource && !this.atomPlaced) {
-            const referenceSpace = this.renderer.xr.getReferenceSpace();
-            const hitTestResults = frame.getHitTestResults(this.hitTestSource);
-
-            if (hitTestResults.length > 0) {
-                const hit = hitTestResults[0];
-                this.reticle.visible = true;
-                this.reticle.matrix.fromArray(hit.getPose(referenceSpace).transform.matrix);
-            } else {
-                this.reticle.visible = false;
-            }
-        }
-
-        // В демо режимі додаємо автообертання
-        if (!this.isARActive && this.atomGroup) {
-            this.atomGroup.rotation.y += 0.003;
+        // Плавне обертання всього атома
+        if (!this.isARActive) {
+            this.atomGroup.rotation.y += 0.005;
         }
 
         this.renderer.render(this.scene, this.camera);
@@ -451,20 +335,11 @@ class LithiumAtomAR {
 
     endAR() {
         this.isARActive = false;
-        this.atomPlaced = false;
         const arButton = document.getElementById('ar-button');
-        const arControls = document.getElementById('ar-controls');
-        
         arButton.classList.remove('hidden');
-        arControls.classList.add('hidden');
         
         if (this.animationId) {
             cancelAnimationFrame(this.animationId);
-        }
-
-        // Прибираємо рендерер
-        if (this.renderer && this.renderer.domElement) {
-            document.getElementById('container').removeChild(this.renderer.domElement);
         }
     }
 
@@ -477,14 +352,7 @@ class LithiumAtomAR {
     }
 }
 
-// Обробка зміни розміру вікна
-window.addEventListener('resize', () => {
-    if (window.lithiumAtomAR) {
-        window.lithiumAtomAR.onWindowResize();
-    }
-});
-
 // Запуск додатку після завантаження DOM
 document.addEventListener('DOMContentLoaded', () => {
-    window.lithiumAtomAR = new LithiumAtomAR();
+    new LithiumAtomAR();
 });
