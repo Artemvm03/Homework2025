@@ -65,6 +65,11 @@ class LithiumAtomAR {
         this.renderer.xr.enabled = true;
         document.getElementById('container').appendChild(this.renderer.domElement);
 
+        // Завантаження текстур
+        this.textureLoader = new THREE.TextureLoader();
+        this.nucleusTexture = this.textureLoader.load('https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/waternormals.jpg');
+        this.electronTexture = this.textureLoader.load('https://raw.githubusercontent.com/aframevr/sample-assets/master/assets/images/noise/water.jpg');
+
         // Додавання освітлення
         this.setupLighting();
 
@@ -107,13 +112,12 @@ class LithiumAtomAR {
     }
 
     createNucleus() {
-        // Ядро літію (більше за розміром через 7 нуклонів)
+        // Ядро літію з текстурою
         const nucleusGeometry = new THREE.SphereGeometry(0.3, 32, 32);
-        const nucleusMaterial = new THREE.MeshPhongMaterial({
-            color: 0xff4444,
-            shininess: 100,
-            transparent: true,
-            opacity: 0.9
+        const nucleusMaterial = new THREE.MeshStandardMaterial({
+            map: this.nucleusTexture,
+            metalness: 0.6,
+            roughness: 0.4
         });
 
         this.nucleus = new THREE.Mesh(nucleusGeometry, nucleusMaterial);
@@ -154,14 +158,15 @@ class LithiumAtomAR {
     }
 
     createElectrons() {
-        // Створюємо 2 електрони для літію
+        // Створюємо 3 електрони для літію з правильною конфігурацією
         const electronGeometry = new THREE.SphereGeometry(0.05, 16, 16);
-        const electronMaterial = new THREE.MeshPhongMaterial({
-            color: 0x00ff00,
-            shininess: 50
+        const electronMaterial = new THREE.MeshStandardMaterial({
+            map: this.electronTexture,
+            metalness: 0.7,
+            roughness: 0.2
         });
 
-        // Перший електрон (внутрішня оболонка)
+        // Перша орбіта (K-оболонка): 2 електрони
         const electron1 = new THREE.Mesh(electronGeometry, electronMaterial);
         electron1.userData = { 
             orbitRadius: 0.8,
@@ -172,45 +177,26 @@ class LithiumAtomAR {
         this.electrons.push(electron1);
         this.atomGroup.add(electron1);
 
-        // Другий електрон (зовнішня оболонка)
         const electron2 = new THREE.Mesh(electronGeometry, electronMaterial);
         electron2.userData = { 
-            orbitRadius: 1.2,
-            orbitSpeed: 1.5,
-            orbitOffset: Math.PI,
-            orbitTilt: Math.PI / 4
+            orbitRadius: 0.8,
+            orbitSpeed: 2,
+            orbitOffset: Math.PI, // протилежна сторона орбіти
+            orbitTilt: 0
         };
         this.electrons.push(electron2);
         this.atomGroup.add(electron2);
 
-        // Створюємо орбітальні кільця для візуалізації
-        this.createOrbitalRings();
-    }
-
-    createOrbitalRings() {
-        // Внутрішня орбіта
-        const innerRingGeometry = new THREE.RingGeometry(0.75, 0.85, 32);
-        const innerRingMaterial = new THREE.MeshBasicMaterial({
-            color: 0x00ff00,
-            transparent: true,
-            opacity: 0.2,
-            side: THREE.DoubleSide
-        });
-        const innerRing = new THREE.Mesh(innerRingGeometry, innerRingMaterial);
-        innerRing.rotation.x = Math.PI / 2;
-        this.atomGroup.add(innerRing);
-
-        // Зовнішня орбіта
-        const outerRingGeometry = new THREE.RingGeometry(1.15, 1.25, 32);
-        const outerRingMaterial = new THREE.MeshBasicMaterial({
-            color: 0x00ff00,
-            transparent: true,
-            opacity: 0.2,
-            side: THREE.DoubleSide
-        });
-        const outerRing = new THREE.Mesh(outerRingGeometry, outerRingMaterial);
-        outerRing.rotation.x = Math.PI / 2 + Math.PI / 4;
-        this.atomGroup.add(outerRing);
+        // Друга орбіта (L-оболонка): 1 електрон
+        const electron3 = new THREE.Mesh(electronGeometry, electronMaterial);
+        electron3.userData = { 
+            orbitRadius: 1.4,
+            orbitSpeed: 1.2,
+            orbitOffset: 0,
+            orbitTilt: Math.PI / 6
+        };
+        this.electrons.push(electron3);
+        this.atomGroup.add(electron3);
     }
 
     setupARMode() {
@@ -366,10 +352,6 @@ class LithiumAtomAR {
     }
 }
 
-// Запуск додатку після завантаження DOM
-document.addEventListener('DOMContentLoaded', () => {
-    new LithiumAtomAR();
-});
 // Запуск додатку після завантаження DOM
 document.addEventListener('DOMContentLoaded', () => {
     new LithiumAtomAR();
