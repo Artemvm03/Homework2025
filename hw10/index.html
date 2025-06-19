@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Handpose Angle Viewer</title>
+  <style>
+    body { margin: 0; overflow: hidden; font-family: sans-serif; }
+    #output { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.5); color: #fff; padding: 10px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <video id="video" autoplay playsinline style="transform: scaleX(-1); width: 100vw; height: auto;"></video>
+  <canvas id="overlay"></canvas>
+  <div id="output"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/handpose"></script>
+  <script>
+    const video = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const ctx = overlay.getContext('2d');
+    const outputDiv = document.getElementById('output');
+
+    async function setupCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        return new Promise(resolve => {
+          video.onloadedmetadata = () => resolve(video);
+        });
+      } catch (err) {
+        console.error('Error accessing webcam:', err);
+      }
+    }
+
+    function angleBetween(p1, p2, p3) {
+      const v1 = [p1[0]-p2[0], p1[1]-p2[1], (p1[2]||0)-(p2[2]||0)];
+      const v2 = [p3[0]-p2[0], p3[1]-p2[1], (p3[2]||0)-(p2[2]||0)];
+      const dot = v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
+      const mag1 = Math.sqrt(v1[0]**2 + v1[1]**2 + v1[2]**2);
+      const mag2 = Math.sqrt(v2[0]**2 + v2[1]**2 + v2[2]**2);
+      return Math.acos(dot / (mag1 * mag2)) * (180/Math.PI);
+    }
+
+    async function main() {
+      await tf.setBackend('webgl');
+      await setupCamera();
+      overlay.width = video.videoWidth;
+      overlay.height = video.videoHeight;
+
+      const model = await handpose.load();
+
+      async function render() {
+        try {
+          const predictions = await model.estimateHands(video);
+          ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+          if (predictions.length > 0) {
+            const hand = predictions[0];
+            const pts = hand.landmarks;
+
+            const angles = {};
+            const fingers = {
+              thumb: [2, 4],
+              index: [5, 8],
+              middle: [9, 12],
+              ring: [13, 16],
+              pinky: [17, 20]
+            };
+
+            for (const [name, [mcpIdx, tipIdx]] of Object.entries(fingers)) {
+              const wrist = pts[0];
+              const mcp = pts[mcpIdx];
+              const tip = pts[tipIdx];
+              const angle = angleBetween(tip, mcp, wrist);
+              angles[name] = angle.toFixed(1);
+            }
+
+            pts.forEach(p => {
+              ctx.beginPath();
+              ctx.arc(p[0], p[1], 5, 0, 2 * Math.PI);
+              ctx.fillStyle = 'aqua';
+              ctx.fill();
+            });
+
+            outputDiv.innerHTML = Object.entries(angles)
+              .map(([f, a]) => `<strong>${f}</strong>: ${a}&deg;`).join('<br>');
+          }
+        } catch (err) {
+          console.error('Render error:', err);
+        }
+        requestAnimationFrame(render);
+      }
+
+      render();
+    }
+
+    main();
+  </script>
+</body>
+</html>
