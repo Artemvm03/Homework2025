@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AR Face Mask - MindAR</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-face-three.prod.js"></script>
@@ -68,7 +68,6 @@
             <p>📱 Дозвольте доступ до камери</p>
             <p>😊 Дивіться прямо в камеру</p>
         </div>
-        
         <button id="startButton">🚀 Старт AR</button>
         <div id="loading">⏳ Завантаження AR...</div>
     </div>
@@ -86,61 +85,59 @@
             document.getElementById('loading').style.display = 'block';
 
             try {
-                // Initialize MindAR
+                // Ініціалізація MindAR
                 mindarThree = new window.MINDAR.FACE.MindARThree({
                     container: document.getElementById("container"),
                 });
 
-                const {renderer: r, scene: s, camera: c} = mindarThree;
-                renderer = r;
-                scene = s;
-                camera = c;
+                // Очікуємо запуск AR
+                await mindarThree.start();
 
-                // Create face mask
+                // Отримаємо посилання на renderer, scene і camera
+                renderer = mindarThree.renderer;
+                scene = mindarThree.scene;
+                camera = mindarThree.camera;
+
+                // Створюємо маску
                 createFaceMask();
 
-                // Start AR
-                await mindarThree.start();
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('instructions').innerHTML = '<h3>🎭 AR активовано!</h3><p>Рухайте головою для взаємодії з маскою</p>';
-                
-                // Start animation loop
+
+                // Запускаємо анімацію
                 animate();
 
-            } catch(error) {
+            } catch (error) {
                 console.error('Error starting AR:', error);
                 document.getElementById('loading').innerHTML = '❌ Помилка завантаження AR. Перевірте доступ до камери.';
             }
         }
 
         function createFaceMask() {
-            // Create main mask group
+            // Створюємо групу маски
             maskGroup = new THREE.Group();
 
-            // Face anchor (face detection point)
+            // Додаємо анкер (точку фіксації на обличчі)
             const faceAnchor = mindarThree.addAnchor(1);
 
-            // Create decorative glasses frame
+            // Створюємо декоративні окуляри
             const glassesGeometry = new THREE.TorusGeometry(0.15, 0.02, 8, 16);
             const glassesMaterial = new THREE.MeshBasicMaterial({ 
                 color: 0x2c3e50,
                 transparent: true,
                 opacity: 0.9
             });
-            
-            // Left lens
             const leftLens = new THREE.Mesh(glassesGeometry, glassesMaterial);
             leftLens.position.set(-0.12, 0.05, 0);
             leftLens.rotation.x = Math.PI / 2;
             maskGroup.add(leftLens);
 
-            // Right lens
             const rightLens = new THREE.Mesh(glassesGeometry, glassesMaterial);
             rightLens.position.set(0.12, 0.05, 0);
             rightLens.rotation.x = Math.PI / 2;
             maskGroup.add(rightLens);
 
-            // Bridge
+            // Міст
             const bridgeGeometry = new THREE.CylinderGeometry(0.015, 0.015, 0.08, 8);
             const bridgeMaterial = new THREE.MeshBasicMaterial({ color: 0x2c3e50 });
             const bridge = new THREE.Mesh(bridgeGeometry, bridgeMaterial);
@@ -148,7 +145,7 @@
             bridge.rotation.z = Math.PI / 2;
             maskGroup.add(bridge);
 
-            // Animated floating hearts
+            // Анімовані серця
             for(let i = 0; i < 5; i++) {
                 const heartShape = createHeartShape();
                 const heartGeometry = new THREE.ShapeGeometry(heartShape);
@@ -158,8 +155,6 @@
                     opacity: 0.8
                 });
                 const heart = new THREE.Mesh(heartGeometry, heartMaterial);
-                
-                // Random position around face
                 heart.position.set(
                     (Math.random() - 0.5) * 0.8,
                     (Math.random() - 0.5) * 0.6,
@@ -174,7 +169,7 @@
                 maskGroup.add(heart);
             }
 
-            // Add sparkle particles
+            // Спалахи
             const sparkleGroup = new THREE.Group();
             for(let i = 0; i < 10; i++) {
                 const sparkleGeometry = new THREE.SphereGeometry(0.005, 4, 4);
@@ -184,7 +179,6 @@
                     opacity: Math.random() * 0.8 + 0.2
                 });
                 const sparkle = new THREE.Mesh(sparkleGeometry, sparkleMaterial);
-                
                 sparkle.position.set(
                     (Math.random() - 0.5) * 0.6,
                     (Math.random() - 0.5) * 0.6,
@@ -198,7 +192,7 @@
             }
             maskGroup.add(sparkleGroup);
 
-            // Animated mustache
+            // Анімований усміх
             const mustacheShape = createMustacheShape();
             const mustacheGeometry = new THREE.ShapeGeometry(mustacheShape);
             const mustacheMaterial = new THREE.MeshBasicMaterial({ 
@@ -212,6 +206,7 @@
             mustache.userData = { wiggleSpeed: 0.05 };
             maskGroup.add(mustache);
 
+            // Додаємо групу маски до анкеру
             faceAnchor.group.add(maskGroup);
         }
 
@@ -242,20 +237,24 @@
 
         function animate() {
             animationId = requestAnimationFrame(animate);
-            
+
             if (maskGroup) {
                 const time = Date.now() * 0.001;
-                
-                // Animate hearts
+
+                // Анімація сердець
                 maskGroup.children.forEach(child => {
-                    if (child.geometry && child.geometry.type === 'ShapeGeometry' && child.material.color.getHex() === 0xff69b4 || child.material.color.getHex() === 0xff1493) {
+                    if (
+                        child.geometry && 
+                        child.geometry.type === 'ShapeGeometry' && 
+                        (child.material.color.getHex() === 0xff69b4 || child.material.color.getHex() === 0xff1493)
+                    ) {
                         child.position.y = child.userData.originalY + Math.sin(time * child.userData.speed) * child.userData.amplitude;
                         child.rotation.z = Math.sin(time * 2) * 0.2;
                     }
                 });
 
-                // Animate sparkles
-                const sparkleGroup = maskGroup.children.find(child => child.type === 'Group');
+                // Анімація спалахів
+                const sparkleGroup = maskGroup.children.find(c => c.type === 'Group');
                 if (sparkleGroup) {
                     sparkleGroup.children.forEach(sparkle => {
                         sparkle.rotation.x += sparkle.userData.rotationSpeed;
@@ -264,23 +263,23 @@
                     });
                 }
 
-                // Animate mustache
-                const mustache = maskGroup.children.find(child => 
-                    child.geometry && child.geometry.type === 'ShapeGeometry' && 
-                    child.material.color.getHex() === 0x654321
+                // Анімація усмішки
+                const mustache = maskGroup.children.find(c => 
+                    c.geometry && c.geometry.type === 'ShapeGeometry' && 
+                    c.material.color.getHex() === 0x654321
                 );
                 if (mustache) {
                     mustache.rotation.z = Math.sin(time * mustache.userData.wiggleSpeed) * 0.1;
                 }
 
-                // Rotate entire mask slightly
+                // Легке обертання маски
                 maskGroup.rotation.z = Math.sin(time * 0.5) * 0.02;
             }
 
             renderer.render(scene, camera);
         }
 
-        // Handle window resize
+        // Обробка зміни розміру вікна
         window.addEventListener('resize', () => {
             if (mindarThree) {
                 mindarThree.renderer.setSize(window.innerWidth, window.innerHeight);
@@ -289,7 +288,7 @@
             }
         });
 
-        // Cleanup on page unload
+        // Очистка при закритті сторінки
         window.addEventListener('beforeunload', () => {
             if (animationId) {
                 cancelAnimationFrame(animationId);
