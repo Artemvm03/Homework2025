@@ -81,37 +81,44 @@
         document.getElementById('startButton').addEventListener('click', startAR);
 
         async function startAR() {
-            document.getElementById('startButton').style.display = 'none';
-            document.getElementById('loading').style.display = 'block';
+    document.getElementById('startButton').style.display = 'none';
+    document.getElementById('loading').style.display = 'block';
 
-            try {
-                // Ініціалізація MindAR
-                mindarThree = new window.MINDAR.FACE.MindARThree({
-                    container: document.getElementById("container"),
-                });
+    try {
+        // Ініціалізація
+        mindarThree = new window.MINDAR.FACE.MindARThree({
+            container: document.getElementById("container"),
+        });
 
-                // Очікуємо запуск AR
-                await mindarThree.start();
+        // Чекаємо запуск AR
+        await mindarThree.start();
 
-                // Отримаємо посилання на renderer, scene і camera
-                renderer = mindarThree.renderer;
-                scene = mindarThree.scene;
-                camera = mindarThree.camera;
+        // Тепер, коли AR запущено, отримуємо renderer, scene, camera
+        renderer = mindarThree.renderer;
+        scene = mindarThree.scene;
+        camera = mindarThree.camera;
 
-                // Створюємо маску
-                createFaceMask();
+        // Створюємо маску
+        createFaceMask();
 
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('instructions').innerHTML = '<h3>🎭 AR активовано!</h3><p>Рухайте головою для взаємодії з маскою</p>';
+        // Тільки після запуску і створення маски, додаємо анкер
+        // (Можна додати один раз, якщо потрібно)
+        const faceAnchor = mindarThree.addAnchor(1);
 
-                // Запускаємо анімацію
-                animate();
+        // Оновлюємо групу маски, наприклад:
+        faceAnchor.group.add(maskGroup);
 
-            } catch (error) {
-                console.error('Error starting AR:', error);
-                document.getElementById('loading').innerHTML = '❌ Помилка завантаження AR. Перевірте доступ до камери.';
-            }
-        }
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('instructions').innerHTML = '<h3>🎭 AR активовано!</h3><p>Рухайте головою для взаємодії з маскою</p>';
+
+        // Запускаємо анімацію
+        animate();
+
+    } catch (error) {
+        console.error('Error starting AR:', error);
+        document.getElementById('loading').innerHTML = '❌ Помилка завантаження AR. Перевірте доступ до камери.';
+    }
+}
 
         function createFaceMask() {
             // Створюємо групу маски
