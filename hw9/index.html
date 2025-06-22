@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+     <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.1/dist/mindar-image-aframe.prod.js"></script>
+	
+</head>
+<body>
+    <div id="loading">
+        <div class="loading-spinner"></div>
+        <div>Завантаження AR сцени...</div>
+    </div>
+
+    <div id="info">
+        <h3>🎯 MindAR Demo</h3>
+        <p><strong>Інструкції:</strong></p>
+        <ul>
+            <li>Направте камеру на маркер для відео</li>
+     
+        </ul>
+    </div>
+	
+    <a-scene
+        mindar-image="imageTargetSrc: ./targets.mind; showStats: false; uiScanning: #scanning;"
+        color-space="sRGB"
+        renderer="colorManagement: true, physicallyCorrectLights"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false">
+
+        <a-assets>
+            
+
+            <a-asset-item
+                id="duck-model"
+                src="../hw2/Surprising Jofo.glb">
+            </a-asset-item>
+        </a-assets>
+
+        <a-camera
+            position="0 0 0"
+            look-controls="enabled: false"
+            cursor="fuse: false; rayOrigin: mouse;"
+            raycaster="far: 10000; objects: .clickable">
+        </a-camera>
+
+        <a-entity mindar-image-target="targetIndex: 0">
+
+            <video id="demo-video" src="/Анимация модели атома.mp4" autoplay loop> </video>
+			</a-video> 
+			<script src="./main.js" type="module"></script>
+        </a-entity>
+
+        <a-entity mindar-image-target="targetIndex: 1">
+
+
+            <a-entity
+                gltf-model="#duck-model"
+                position="0 0.15 0"
+                scale="5 5 5"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 5000"
+ 
+            </a-entity>
+
+            <a-entity id="particles">
+                <a-sphere position="0.2 0.1 0.2" radius="0.01" color="#FFD700"
+                        animation="property: position; to: -0.2 0.3 -0.2; loop: true; dur: 3000; dir: alternate; easing: easeInOutSine"></a-sphere>
+                <a-sphere position="-0.2 0.1 0.2" radius="0.01" color="#FF6B6B"
+                        animation="property: position; to: 0.2 0.3 -0.2; loop: true; dur: 3500; dir: alternate; easing: easeInOutSine"></a-sphere>
+                <a-sphere position="0.2 0.1 -0.2" radius="0.01" color="#4ECDC4"
+                        animation="property: position; to: -0.2 0.3 0.2; loop: true; dur: 2800; dir: alternate; easing: easeInOutSine"></a-sphere>
+                <a-sphere position="-0.2 0.1 -0.2" radius="0.01" color="#95E1D3"
+                        animation="property: position; to: 0.2 0.3 0.2; loop: true; dur: 3200; dir: alternate; easing: easeInOutSine"></a-sphere>
+            </a-entity>
+        </a-entity>
+
+    </a-scene>
+</body>
+</html>
